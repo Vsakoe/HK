@@ -11,6 +11,11 @@
 #┗┛━┗┛┗┛┗┛┗┛┗┛┗┛━┗━━┛━┗━━┛━┗━┛┗━━┛┗┛━━━━━
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# load from: t.me:HikkTutor 
+# meta developer:@HikkTutor 
+# name: bio farm 
+
 from .. import loader, utils
 from telethon import types, events
 import asyncio
