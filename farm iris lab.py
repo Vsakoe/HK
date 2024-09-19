@@ -25,19 +25,19 @@ spam = None
 
 @loader.tds
 class stickersMod(loader.Module):
-  """by @HikkTutor | этот модуль позволит копить био опыт/ресурсы
+  """Этот модуль позволит копить био опыт/ресурсы
   
   (на балансе необходимо иметь био ресурсы)"""
   strings = {'name':'bio farm'}
   
   async def stopzarcmd(self, message):
-      """**остановить фарм**"""
+      """остановить фарм"""
       global spam
       spam = False
       await message.delete()
       
   async def zarcmd(self, message):
-      """(**@id/@user/t.me**) заражение по айди""" 
+      """(@id/@user/t.me) заражение по айди""" 
       args = utils.get_args_raw(msg)
       if not args:
 	      await msg.edit("Вы не указали айди или юзернейм")
@@ -53,15 +53,15 @@ class stickersMod(loader.Module):
               return
       
   async def masszarcmd(self, message):
-      """(количисво) **запуск фарма**"""
+      """(количисво) запуск фарма"""
       chat = 5443619563
       args = utils.get_args_raw(message)
       if not args:
-	        await message.edit("Вы не указали количество")
+	        await message.edit("<b>Вы не указали количество</b>")
 	        return
       async with message.client.conversation(chat) as conv:
           try:
-              await message.edit('Фарм запущен')
+              await message.edit('<b>Фарм запущен...</b>')
               global spam
               spam = True
               for i in range(0, int(args)+1):
