@@ -40,7 +40,7 @@ class stickersMod(loader.Module):
       """(@id/@user/t.me) заражение по айди""" 
       args = utils.get_args_raw(msg)
       if not args:
-	      await msg.edit("Вы не указали айди или юзернейм")
+	      await msg.edit( "<b>Вы не указали айди или юзернейм</b> <emoji document_id=5406917170540068843>❗️</emoji>")
 	      return
       async with msg.client.conversation(5443619563) as conv:
           try:
@@ -49,7 +49,7 @@ class stickersMod(loader.Module):
               await msg.edit(str(evt.message.message))
               
           except Exception as e:
-              await msg.edit("Ирис заблокирован или произошла ошибка")
+              await msg.edit("<b>Ирис заблокирован или произошла ошибка</b> <emoji document_id=5406917170540068843>❗️</emoji>")
               return
       
   async def masszarcmd(self, message):
@@ -57,11 +57,11 @@ class stickersMod(loader.Module):
       chat = 5443619563
       args = utils.get_args_raw(message)
       if not args:
-	        await message.edit("<b>Вы не указали количество</b>")
+	        await message.edit("<b>Вы не указали количество</b> <emoji document_id=5406917170540068843>❗️</emoji>")
 	        return
       async with message.client.conversation(chat) as conv:
           try:
-              await message.edit('<b>Фарм запущен...</b>')
+              await message.edit('<b>Фарм запущен...</b> <emoji document_id=5406873473542797476>⚗️</emoji>')
               global spam
               spam = True
               for i in range(0, int(args)+1):
