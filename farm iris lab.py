@@ -40,7 +40,7 @@ class stickersMod(loader.Module):
       """(@id/@user/t.me) заражение по айди""" 
       args = utils.get_args_raw(msg)
       if not args:
-	      await msg.edit( "<b>Вы не указали айди или юзернейм</b> <emoji document_id=5406917170540068843>❗️</emoji>")
+	      await msg.edit("<b>Вы не указали айди или юзернейм</b> <emoji document_id=5406917170540068843>❗️</emoji>")
 	      return
       async with msg.client.conversation(5443619563) as conv:
           try:
@@ -73,5 +73,5 @@ class stickersMod(loader.Module):
                 await asyncio.sleep(3)
               spam = False
           except YouBlockedUserError:
-              await message.edit("Ирис заблокирован")
+              await message.edit("<b>Ирис заблокирован</b>")
               return
