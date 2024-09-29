@@ -46,9 +46,9 @@ class PoiskMod(loader.Module):
         dusno = random.choice(users)
 
         greetings = [
-            f'<b>Похоже, что главный душнила в чате</b> <a href="tg://user?id={dusno.id}">{dusno.first_name}<b>.</a>Откройте окно!</b>',
+            f'<b>Похоже, что главный душнила в чате</b> <a href="tg://user?id={dusno.id}">{dusno.first_name}<b></a>. Откройте окно!</b>',
             f'<b>Ухты, душнометр зашкаливает! Царь душнил - </b> <a href="tg://user?id={dusno.id}">{dusno.first_name}</a>',
-            f'<b>Даже открытое окно не спасает... </b> <a href="tg://user?id={dusno.id}">{dusno.first_name}</a><b>, таких душнил я ещё не встречал</b>!',
+            f'<b>Даже открытое окно не спасает... </b> <a href="tg://user?id={dusno.id}">{dusno.first_name}<b></a>, таких душнил я ещё не встречал</b>!',
         ]
 
         selected_greeting = random.choice(greetings)
