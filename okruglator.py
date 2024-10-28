@@ -1,4 +1,4 @@
-__version__ = (1, 1, 4)
+__version__ = (1, 2, 5)
 
 #            © Copyright 2024
 #           https://t.me/HikkTutor 
@@ -18,15 +18,17 @@ __version__ = (1, 1, 4)
 # name: okruglator
 import subprocess
 from telethon.tl.types import DocumentAttributeVideo
-from telethon.errors import ChatAdminRequiredError
 from .. import loader
 import os
 import asyncio
 from collections import deque
 import uuid
+import threading
 
 MAX_VIDEO_DURATION = 60 
 MAX_VIDEO_SIZE_MB = 25 
+VIDEO_BITRATE = "500k" 
+AUDIO_BITRATE = "64k" 
 
 @loader.tds
 class okruglator(loader.Module):
@@ -38,7 +40,7 @@ class okruglator(loader.Module):
         self.config = loader.ModuleConfig(
             loader.ConfigValue(
                 "show_progress",
-                True,
+                False,
                 lambda: "Отображать прогресс загрузки?",
                 validator=loader.validators.Boolean()
             ),
@@ -63,6 +65,18 @@ class okruglator(loader.Module):
             await message.edit(new_text)
             self.last_message_text = new_text
 
+    def convert_video(self, video_path, output_path):
+        """Конвертирует видео в формат кружка с уменьшенным размером."""
+        ffmpeg_command = [
+            'ffmpeg', '-i', video_path, '-vf', 'crop=min(iw\\,ih):min(iw\\,ih),scale=480:480,format=yuv420p',
+            '-b:v', VIDEO_BITRATE, '-b:a', AUDIO_BITRATE,
+            '-codec:v', 'libx264', '-preset', 'fast', '-tune', 'zerolatency',
+            '-t', str(MAX_VIDEO_DURATION), '-y', output_path
+        ]
+        process = subprocess.run(ffmpeg_command, stderr=subprocess.PIPE, text=True)
+        if process.returncode != 0:
+            raise Exception(f"FFmpeg error: {process.stderr}")
+
     async def process_video(self, message, video, reply):
         """Обработка видео."""
         self.active_tasks += 1
@@ -72,13 +86,9 @@ class okruglator(loader.Module):
         output_path = f"output_video_{unique_id}.mp4"
 
         try:
-            if self.active_tasks == 2:
-                await message.edit("<b>Обработка 2 видео нагружает сервер сильнее</b>")
-                await asyncio.sleep(0.9) 
-
             if self.active_tasks > 2:
                 await message.edit("<b>Нельзя обрабатывать больше видео</b>")
-                self.active_tasks -= 1 
+                self.active_tasks -= 1
                 return
 
             if video.size > MAX_VIDEO_SIZE_MB * 1024 * 1024:
@@ -86,65 +96,34 @@ class okruglator(loader.Module):
                 self.active_tasks -= 1
                 return
 
-            if self.config["show_progress"]:
-                await self.display_progress(message, "Скачиваю видео", 0, 1)
-                await message.client.download_media(
-                    video,
-                    video_path,
-                    progress_callback=lambda d, t: asyncio.ensure_future(
-                        self.display_progress(message, "Скачиваю видео", d, t)
-                    )
+            await self.display_progress(message, "Скачиваю видео", 0, 1)
+            await message.client.download_media(
+                video,
+                video_path,
+                progress_callback=lambda d, t: asyncio.ensure_future(
+                    self.display_progress(message, "Скачиваю видео", d, t)
                 )
-            else:
-                await message.edit("<b>Скачиваю видео...</b>")
-                self.last_message_text = "<b>Скачиваю видео...</b>"
-                await message.client.download_media(video, video_path)
+            )
 
             await message.edit("<b>Обрабатываю видео...</b>")
-            self.last_message_text = "<b>Обрабатываю видео...</b>"
-            ffmpeg_command = [
-                'ffmpeg', '-i', video_path, '-vf', 'crop=min(iw\\,ih):min(iw\\,ih),scale=480:480,format=yuv420p',
-                '-codec:v', 'libx264', '-preset', 'fast', '-tune', 'zerolatency', '-t', str(MAX_VIDEO_DURATION), '-y', output_path
-            ]
+            
+            convert_thread = threading.Thread(target=self.convert_video, args=(video_path, output_path))
+            convert_thread.start()
+            convert_thread.join() 
 
-            process = subprocess.run(ffmpeg_command, stderr=subprocess.PIPE, text=True)
-            if process.returncode != 0:
-                raise Exception(f"FFmpeg error: {process.stderr}")
-
-            if self.config["show_progress"]:
-                await self.display_progress(message, "Отправляю кружок", 0, 1)
-                try:
-                    await message.client.send_file(
-                        message.to_id,
-                        file=output_path,
-                        attributes=[DocumentAttributeVideo(round_message=True, duration=0, w=480, h=480)],
-                        reply_to=reply.id if reply else None,
-                        progress_callback=lambda d, t: asyncio.ensure_future(
-                            self.display_progress(message, "Отправляю видео-сообщение", d, t)
-                        )
-                    )
-                except ChatAdminRequiredError:
-                    await message.edit("<b>В этом чате запрещены кружки.</b>")
-            else:
-                await message.edit("<b>Отправляю видео-сообщение...</b>")
-                self.last_message_text = "<b>Отправляю видео-сообщение...</b>"
-                try:
-                    await message.client.send_file(
-                        message.to_id,
-                        file=output_path,
-                        attributes=[DocumentAttributeVideo(round_message=True, duration=0, w=480, h=480)],
-                        reply_to=reply.id if reply else None
-                    )
-                except ChatAdminRequiredError:
-                    await message.edit("<b>В этом чате запрещены кружки.</b>")
-
+            await self.display_progress(message, "Отправляю кружок", 0, 1)
+            await message.client.send_file(
+                message.to_id,
+                file=output_path,
+                attributes=[DocumentAttributeVideo(round_message=True, duration=0, w=480, h=480)],
+                reply_to=reply.id if reply else None,
+                progress_callback=lambda d, t: asyncio.ensure_future(
+                    self.display_progress(message, "Отправляю кружок", d, t)
+                )
+            )
             await message.delete()
         except Exception as e:
-            if self.active_tasks == 2:
-                await message.edit("<b>Произошла ошибка при обработке второго видео. Вношу задачу в очередь для повторной обработки.</b>")
-                self.task_queue.append((message, video, reply))
-            else:
-                await message.edit(f"<b>Ошибка: {str(e)}</b>")
+            await message.edit(f"<b>Ошибка: {str(e)}</b>")
         finally:
             self.active_tasks -= 1
             if os.path.exists(video_path):
