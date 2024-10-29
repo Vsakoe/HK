@@ -3,3 +3,4 @@ Currency
 doxer
 dushnometr
 okruglator
+Fping
