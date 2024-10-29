@@ -26,7 +26,7 @@ from .. import loader, utils
 
 @loader.tds
 class FpingMod(loader.Module):
-    """Модуль для настройки и отображения фейкового пинга"""
+    """Реалистичный фейк пинг с премиум эмодзи, имитацией задержки и настоящим аптаймом"""
 
     strings = {
         "name": "Fping",
@@ -81,7 +81,7 @@ class FpingMod(loader.Module):
 
     @loader.command()
     async def fping(self, message):
-        """Устанавливает и отображает фейковый пинг"""
+        """Фейк пинг"""
         args = utils.get_args(message)
         if not args or not args[0].lstrip('-').isdigit():
             await utils.answer(message, self.strings["invalid_input"])
